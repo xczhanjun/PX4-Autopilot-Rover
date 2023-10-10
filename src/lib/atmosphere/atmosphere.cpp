@@ -41,7 +41,7 @@
 
 static constexpr float kTempRefKelvin = 15.f - CONSTANTS_ABSOLUTE_NULL_CELSIUS; // temperature at base height in Kelvin
 static constexpr float kTempGradient = -6.5f / 1000.f; // temperature gradient in degrees per meter
-static constexpr float kPressRefSeaLevelPa = 101325.f; // pressure at sea level in kPa
+static constexpr float kPressRefSeaLevelPa = 101325.f; // pressure at sea level in Pa
 
 float getDensityFromPressureAndTemp(const float pressure_pa, const float temperature_celsius)
 {
@@ -71,4 +71,8 @@ float getAltitudeFromPressure(float pressure_pa, float pressure_sealevel_pa)
 	return (((powf(pressure_ratio, (-(kTempGradient * CONSTANTS_AIR_GAS_CONST) / CONSTANTS_ONE_G))) * kTempRefKelvin) -
 		kTempRefKelvin) / kTempGradient;
 
+}
+float getStandardTemperatureAtAltitude(float altitude_m)
+{
+	return 15.0f + kTempGradient * altitude_m;
 }
