@@ -114,7 +114,7 @@ void MissionBase::updateMavlinkMission()
 		if (isMissionValid(new_mission)) {
 			/* Relevant mission items updated externally*/
 			if (checkMissionDataChanged(new_mission)) {
-				bool mission_items_changed = (new_mission.mission_update_counter != _mission.mission_update_counter);
+				bool mission_items_changed = (new_mission.mission_id != _mission.mission_id);
 
 				if (new_mission.current_seq < 0) {
 					new_mission.current_seq = math::max(math::min(_mission.current_seq, static_cast<int32_t>(new_mission.count) - 1),
@@ -568,14 +568,14 @@ MissionBase::checkMissionRestart()
 void
 MissionBase::check_mission_valid()
 {
-	if (_navigator->get_mission_result()->instance_count != _mission.mission_update_counter) {
+	if (_navigator->get_mission_result()->instance_count != _mission.mission_id) {
 		MissionFeasibilityChecker missionFeasibilityChecker(_navigator, _dataman_client);
 
 		bool is_mission_valid =
 			missionFeasibilityChecker.checkMissionFeasible(_mission);
 
 		_navigator->get_mission_result()->valid = is_mission_valid;
-		_navigator->get_mission_result()->instance_count = _mission.mission_update_counter;
+		_navigator->get_mission_result()->instance_count = _mission.mission_id;
 		_navigator->get_mission_result()->seq_total = _mission.count;
 		_navigator->get_mission_result()->seq_reached = -1;
 		_navigator->get_mission_result()->failure = false;
@@ -1030,7 +1030,7 @@ void MissionBase::resetMission()
 	new_mission.land_start_index = -1;
 	new_mission.land_index = -1;
 	new_mission.count = 0u;
-	new_mission.mission_update_counter = _mission.mission_update_counter + 1;
+	new_mission.mission_id = 0u;
 	new_mission.dataman_id = _mission.dataman_id == DM_KEY_WAYPOINTS_OFFBOARD_0 ? DM_KEY_WAYPOINTS_OFFBOARD_1 :
 				 DM_KEY_WAYPOINTS_OFFBOARD_0;
 
@@ -1232,8 +1232,8 @@ void MissionBase::checkClimbRequired(int32_t mission_item_index)
 
 bool MissionBase::checkMissionDataChanged(mission_s new_mission)
 {
-	/* count and land_index are the same if the mission_counter did not change. We do not care about changes in geofence or rally counters.*/
+	/* count and land_index are the same if the mission_id did not change. We do not care about changes in geofence or rally counters.*/
 	return ((new_mission.dataman_id != _mission.dataman_id) ||
-		(new_mission.mission_update_counter != _mission.mission_update_counter) ||
+		(new_mission.mission_id != _mission.mission_id) ||
 		(new_mission.current_seq != _mission.current_seq));
 }
