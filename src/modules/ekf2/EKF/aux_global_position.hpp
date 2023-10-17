@@ -71,6 +71,10 @@ public:
 	}
 
 private:
+	bool isTimedOut(uint64_t last_sensor_timestamp, uint64_t time_delayed_us, uint64_t timeout_period) const
+	{
+		return (last_sensor_timestamp == 0) || (last_sensor_timestamp + timeout_period < time_delayed_us);
+	}
 
 	struct AuxGlobalPositionSample {
 		uint64_t time_us{};     ///< timestamp of the measurement (uSec)
@@ -85,6 +89,12 @@ private:
 
 	RingBuffer<AuxGlobalPositionSample> _aux_global_position_buffer{20}; // TODO: size with _obs_buffer_length and actual publication rate
 	uint64_t _time_last_buffer_push{0};
+
+	enum Ctrl : uint8_t {
+		HPOS  = (1<<0),
+		VPOS  = (1<<1),
+		YAW  = (1<<3)
+	};
 
 	enum class State {
 		stopped,

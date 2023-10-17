@@ -60,6 +60,8 @@ void AuxGlobalPosition::update(Ekf &ekf, const estimator::imuSample &imu_delayed
 		sample.heading_valid = aux_global_position.heading_valid;
 
 		_aux_global_position_buffer.push(sample);
+
+		_time_last_buffer_push = imu_delayed.time_us;
 	}
 
 #endif // MODULE_NAME
@@ -68,7 +70,7 @@ void AuxGlobalPosition::update(Ekf &ekf, const estimator::imuSample &imu_delayed
 
 	if (_aux_global_position_buffer.pop_first_older_than(imu_delayed.time_us, &sample)) {
 
-		if (!_param_ekf2_agp_ctrl.get() & 0b001) {
+		if (!(_param_ekf2_agp_ctrl.get() & static_cast<int32_t>(Ctrl::HPOS))) {
 			return;
 		}
 
@@ -145,6 +147,10 @@ void AuxGlobalPosition::update(Ekf &ekf, const estimator::imuSample &imu_delayed
 		aid_src.timestamp = hrt_absolute_time();
 		_estimator_aid_src_aux_global_position_pub.publish(aid_src);
 #endif // MODULE_NAME
+	} else if ((_state != State::stopped) && isTimedOut(_time_last_buffer_push, imu_delayed.time_us, (uint64_t)5e6)) {
+		ekf.disableControlStatusAuxGpos();
+		_state = State::stopped;
+		ECL_WARN("Aux global position data stopped");
 	}
 }
 
