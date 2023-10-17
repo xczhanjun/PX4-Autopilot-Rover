@@ -100,8 +100,6 @@ private:
 		stopped,
 		starting,
 		active,
-		stopping,
-		resetting,
 	};
 
 	State _state{State::stopped};

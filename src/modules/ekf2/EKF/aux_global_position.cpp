@@ -98,8 +98,22 @@ void AuxGlobalPosition::update(Ekf &ekf, const estimator::imuSample &imu_delayed
 
 		switch (_state) {
 		case State::stopped:
+		/* FALLTHROUGH */
+		case State::starting:
 			if (starting_conditions) {
 				_state = State::starting;
+
+				if (ekf.global_origin_valid()) {
+					ekf.enableControlStatusAuxGpos();
+					_state = State::active;
+
+				} else {
+					// Try to initialize using measurement
+					if (ekf.setEkfGlobalOrigin(sample.latitude, sample.longitude, sample.altitude, sample.positional_uncertainty)) {
+						ekf.enableControlStatusAuxGpos();
+						_state = State::active;
+					}
+				}
 			}
 			break;
 
@@ -108,35 +122,9 @@ void AuxGlobalPosition::update(Ekf &ekf, const estimator::imuSample &imu_delayed
 				ekf.fuseHorizontalPosition(aid_src);
 
 			} else {
-				_state = State::stopping;
+				ekf.disableControlStatusAuxGpos();
+				_state = State::stopped;
 			}
-			break;
-
-		default:
-			break;
-		}
-
-		switch (_state) {
-		case State::starting:
-			if (!ekf.global_origin_valid()) {
-				// Try to initialize using measurement
-				if (ekf.setEkfGlobalOrigin(sample.latitude, sample.longitude, sample.altitude, sample.positional_uncertainty)) {
-					ekf.enableControlStatusAuxGpos();
-					_state = State::active;
-
-				} else {
-					_state = State::stopping;
-				}
-			}
-			break;
-
-		case State::stopping:
-			ekf.disableControlStatusAuxGpos();
-			_state = State::stopped;
-			break;
-
-		case State::resetting:
-			_state = State::active;
 			break;
 
 		default:
