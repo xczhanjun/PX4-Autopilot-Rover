@@ -315,7 +315,7 @@ public:
 	void getGravityInnovRatio(float &grav_innov_ratio) const { grav_innov_ratio = Vector3f(_aid_src_gravity.test_ratio).max(); }
 
 	// get the state vector at the delayed time horizon
-	const matrix::Vector<float, State::size> &getStateAtFusionHorizonAsVector() const { return _state.vector(); }
+	const matrix::Vector<float, 24> &getStateAtFusionHorizonAsVector() const { return _state.vector(); }
 
 #if defined(CONFIG_EKF2_WIND)
 	// get the wind velocity in m/s
@@ -480,8 +480,6 @@ public:
 	// return a bitmask integer that describes which state estimates can be used for flight control
 	void get_ekf_soln_status(uint16_t *status) const;
 
-	// rotate quaternion covariances into variances for an equivalent rotation vector
-	Vector3f calcRotVecVariances() const;
 	float getYawVar() const;
 
 	// Returns true if the output of the yaw emergency estimator can be used for a reset
